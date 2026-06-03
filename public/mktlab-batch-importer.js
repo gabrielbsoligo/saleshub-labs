@@ -11,6 +11,18 @@
   var SUPABASE_ANON_KEY = 'SUPABASE_JWT_REMOVIDO';
   var SALESHUB_URL = 'https://gestao-comercial-rosy.vercel.app';
 
+  // Parser BRL: "R$ 1.234,56" / "889,20" / "889.20" / 889 → 1234.56 / 889.2 / 889.2 / 889
+  // parseFloat puro nao serve: parseFloat("889,20") = 889 (corta na virgula BR).
+  function parseBRL(s) {
+    if (s == null) return null;
+    if (typeof s === 'number') return isFinite(s) && s > 0 ? s : null;
+    var str = String(s).trim().replace(/R\$\s*/gi, '').replace(/\s+/g, '');
+    if (!str) return null;
+    if (str.indexOf(',') >= 0) str = str.replace(/\./g, '').replace(',', '.');
+    var n = parseFloat(str);
+    return isFinite(n) && n > 0 ? n : null;
+  }
+
   // Prevent double-injection
   if (document.getElementById('sh-importer-panel')) {
     document.getElementById('sh-importer-panel').remove();
@@ -295,7 +307,7 @@
                cf['_norm_produtos marketing'] || null,
       canal: c.canal,
       status: 'sem_contato',
-      valor_lead: parseFloat(cf['Valor Leadbroker'] || cf['Valor'] || '0') || null,
+      valor_lead: parseBRL(cf['Valor Leadbroker'] || cf['Valor']),
       mktlab_link: 'https://mktlab.app/crm/leads/' + (rawLead.id || ''),
       mktlab_id: rawLead.id || null,
       data_cadastro: dc.data_cadastro,

@@ -5,6 +5,18 @@
 const SUPABASE_URL = 'https://iaompeiokjxbffwehhrx.supabase.co';
 const SUPABASE_ANON_KEY = 'SUPABASE_JWT_REMOVIDO';
 
+// Parser BRL: "R$ 1.234,56" / "889,20" / "889.20" / 889 → 1234.56 / 889.2 / 889.2 / 889
+// parseFloat puro nao serve: parseFloat("889,20") = 889 (corta na virgula BR).
+function parseBRL(s) {
+  if (s == null) return null;
+  if (typeof s === 'number') return isFinite(s) && s > 0 ? s : null;
+  let str = String(s).trim().replace(/R\$\s*/gi, '').replace(/\s+/g, '');
+  if (!str) return null;
+  if (str.indexOf(',') >= 0) str = str.replace(/\./g, '').replace(',', '.');
+  const n = parseFloat(str);
+  return isFinite(n) && n > 0 ? n : null;
+}
+
 // ---- State ----
 let supabaseSession = null;
 let currentUser = null; // team_member
@@ -483,7 +495,7 @@ async function importLeads() {
         canal,
         fonte,
         status: 'sem_contato',
-        valor_lead: parseFloat(detail.customFields['Valor Leadbroker'] || detail.customFields['Valor'] || '0') || null,
+        valor_lead: parseBRL(detail.customFields['Valor Leadbroker'] || detail.customFields['Valor']),
         mktlab_link: lead.mktlabLink,
         mktlab_id: lead.mktlabId,
         sdr_id: sdrId,
