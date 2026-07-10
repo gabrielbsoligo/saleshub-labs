@@ -1,8 +1,10 @@
-import sys, io, json
+import sys, io, json, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 import requests
 
-TOKEN = 'SUPABASE_PAT_REMOVIDO'
+TOKEN = os.environ.get('SUPABASE_PAT')
+if not TOKEN:
+    sys.exit('Defina SUPABASE_PAT no ambiente (Personal Access Token do Supabase, sbp_...)')
 PROJECT_REF = 'iaompeiokjxbffwehhrx'
 API = f'https://api.supabase.com/v1/projects/{PROJECT_REF}/database/query'
 
